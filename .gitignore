@@ -1,0 +1,5 @@
+env/
+pip-selfcheck.json
+tcl/
+__pycache__/
+.vagrant/
