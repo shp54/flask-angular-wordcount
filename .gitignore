@@ -3,3 +3,4 @@ pip-selfcheck.json
 tcl/
 __pycache__/
 .vagrant/
+dump.rdb
