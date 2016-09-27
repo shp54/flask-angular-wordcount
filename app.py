@@ -11,6 +11,7 @@ from bs4 import BeautifulSoup
 from rq import Queue
 from rq.job import Job
 from worker import conn
+from flask import jsonify
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -72,7 +73,13 @@ def index():
 def get_results(job_key):
 	job = Job.fetch(job_key, connection=conn)
 	if job.is_finished:
-		return str(job.result), 200
+		result = Result.query.filter_by(id=job.result).first()
+		results = sorted(
+			result.result_no_stop_words.items(),
+			key=operator.itemgetter(1),
+			reverse=True
+		)[:10]
+		return jsonify(results)
 	else:
 		return "Nay!", 202
 
