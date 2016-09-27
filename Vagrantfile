@@ -72,7 +72,5 @@ Vagrant.configure("2") do |config|
 	 sudo apt-get install -y libpq-dev python3-dev
      sudo apt-get install -y python-pip
 	 sudo pip install virtualenv
-	 echo "source /vagrant/env/bin/activate" >> ~/.bashrc
-	 source ~/.bashrc
   SHELL
 end

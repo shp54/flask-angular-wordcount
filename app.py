@@ -12,6 +12,7 @@ from rq import Queue
 from rq.job import Job
 from worker import conn
 from flask import jsonify
+import json
 
 app = Flask(__name__)
 app.config.from_object(os.environ['APP_SETTINGS'])
@@ -56,18 +57,20 @@ def count_and_save_words(url):
 			return {"error": errors}
 
 
-@app.route('/', methods=['GET','POST'])
+@app.route('/', methods=['GET'])
 def index():
-	results = {}
-	if request.method == "POST":
-		url = request.form['url']
-		if 'http://' not in url:
-			url = 'http://' + url
-		job = q.enqueue_call(
-			func=count_and_save_words, args=(url,), result_ttl=5000
-		)
-		print(job.get_id())
-	return render_template('index.html', results=results)
+	return render_template('index.html')
+
+@app.route('/start', methods=['POST'])	
+def get_counts():
+	data = json.loads(request.data.decode())
+	url = data["url"]
+	if 'http://' not in url:
+		url = 'http://' + url
+	job = q.enqueue_call(
+		func=count_and_save_words, args=(url,), result_ttl=5000
+	)
+	return job.get_id()
 	
 @app.route('/results/<job_key>', methods=['GET'])
 def get_results(job_key):
