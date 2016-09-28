@@ -68,9 +68,15 @@ Vagrant.configure("2") do |config|
      apt-get update
 	 sudo apt-get install -y git 
 	 sudo apt-get install -y redis-server
-	 sudo apt-get install -y postgresql postgresql-client
+	 sudo apt-get install -y postgresql postgresql-client #psycopg2 dependencies
 	 sudo apt-get install -y libpq-dev python3-dev
      sudo apt-get install -y python-pip
 	 sudo pip install virtualenv
+	 cd /vagrant #install all packages
+	 pip install -r requirements.txt 
+	 sudo apt-get install -y ruby #heroku deployment stuff
+	 wget -O- https://toolbelt.heroku.com/install-ubuntu.sh | sh
+	 git remote add stage git@heroku.com:flask-wordcount-app-stage.git
+	 git remote add prod git@heroku.com:flask-wordcount-prod.git
   SHELL
 end
