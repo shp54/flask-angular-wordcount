@@ -34,7 +34,10 @@
 				}
 	
 				$scope.getResults = function(){
-					$log.log("test")
+					//Clear warnings and chart
+					$scope.urlerror = false
+					angular.element("#chart").html("")
+					//Get URL
 					var userInput = $scope.url
 					//Post input to server
 					$http.post('/start', {"url": userInput})
@@ -49,6 +52,33 @@
 				}
 			}
 		])
+		.directive('wordCountChart', ['$parse', function($parse){
+			return {
+				restrict: 'E',
+				replace: true,
+				template: "<div id='chart'></div>",
+				link: function(scope){
+				  scope.$watch('wordcounts', function() {
+					d3.select('#chart').selectAll('*').remove()
+					var data = scope.wordcounts
+					for (var word in data) {
+						d3.select('#chart')
+						  .append('div')
+						  .selectAll('div')
+						  .data(word[0])
+						  .enter()
+						  .append('div')
+						  .style('width', function(){
+							  return (data[word] * 20) + 'px'
+						  })
+						  .text(function(d){
+							  return word
+						  })
+					}
+				  }, true)
+				}
+			}
+		}])
 	
 	
 }());
