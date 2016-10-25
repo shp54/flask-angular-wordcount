@@ -2,8 +2,8 @@
 	'use strict';
 	
 	angular.module('WordcountApp', [])
-		.service('wordcountService', ['$http', '$q', '$log', '$timeout', 
-			function($http, $q, $log, $timeout){
+		.service('wordcountService', ['$http', '$q', '$timeout', 
+			function($http, $q, $timeout){
 				//Gets wordcount from job ID
 				this.getWordCount = function(jobID){
 					var wordcountData = $q.defer()
@@ -12,7 +12,7 @@
 						$http.get('/results/' + jobID)
 							.success(function(data, status, headers, config){
 								if(status === 202){
-									$log.log(data, status)
+									wordcountData.notify(data + ' ' + status)
 								} else if(status === 200){
 									wordcountData.resolve(data)
 									$timeout.cancel(timeout)
@@ -71,23 +71,26 @@
 							$log.log(error)
 						}
 					)
-						
-					//Get results from job ID
-					function getWordCount(jobID){
-						wordcountService.getWordCount(jobID).then(
-							function(data){
-								$log.log(data)
-								$scope.wordcounts = data
-							},
-							function(error){
-								$log.log(error)
-								$scope.urlerror = true
-							}
-						).finally(function(){
-							$scope.loading = false
-							$scope.submitButtonText = 'Submit'
-						})
-					}
+				}
+				
+				//Get results from job ID
+				function getWordCount(jobID){
+					wordcountService.getWordCount(jobID).then(
+						function(data){
+							$log.log(data)
+							$scope.wordcounts = data
+						},
+						function(error){
+							$log.log(error)
+							$scope.urlerror = true
+						},
+						function(notify){
+							$log.log(notify)
+						}
+					).finally(function(){
+						$scope.loading = false
+						$scope.submitButtonText = 'Submit'
+					})
 				}
 			}
 		])
