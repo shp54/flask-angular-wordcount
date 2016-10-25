@@ -2,12 +2,11 @@
 	'use strict';
 	
 	angular.module('WordcountApp', [])
-		.controller('WordcountController', ['$scope', '$log', '$http', '$timeout',
-			function($scope, $log, $http, $timeout){
-				$scope.submitButtonText = 'Submit'
-				$scope.loading = false
-				$scope.urlerror = false
-				function getWordCount(jobID){
+		.service('wordcountService', ['$http', '$q', '$log', '$timeout', 
+			function($http, $q, $log, $timeout){
+				//Gets wordcount from job ID
+				this.getWordCount = function(jobID){
+					var wordcountData = $q.defer()
 					var timeout = ""
 					var poller = function(){
 						$http.get('/results/' + jobID)
@@ -15,9 +14,7 @@
 								if(status === 202){
 									$log.log(data, status)
 								} else if(status === 200){
-									$scope.loading = false
-									$scope.submitButtonText = 'Submit'
-									$scope.wordcounts = data
+									wordcountData.resolve(data)
 									$timeout.cancel(timeout)
 									return false
 								}
@@ -25,30 +22,72 @@
 								timeout = $timeout(poller, 2000)
 							})
 							.error(function(error){
-								$scope.urlerror = true
-								$scope.submitButtonText = 'Submit'
-								$scope.loading = false
+								wordcountData.reject(error)
 							})
 					}
-					poller()
+					
+					//Set initial timeout
+					timeout = $timeout(poller, 1000)
+					
+					return wordcountData.promise
 				}
+				
+				//Returns job ID from URL
+				this.getJobID = function(url){
+					var jobID = $q.defer()
+					$http.post('/start', {"url": url})
+						.success(function(results){
+							jobID.resolve(results)
+						}).error(function(error){
+							jobID.reject(error)
+						})
+							
+					return jobID.promise
+				}
+			}
+		])
+		.controller('WordcountController', ['$scope', '$log', 'wordcountService',
+			function($scope, $log, wordcountService){
+				$scope.submitButtonText = 'Submit'
+				$scope.loading = false
+				$scope.urlerror = false
 	
 				$scope.getResults = function(){
 					//Clear warnings and chart
 					$scope.urlerror = false
-					angular.element("#chart").html("")
+					$("#chart").html("")
 					//Get URL
 					var userInput = $scope.url
 					//Post input to server
-					$http.post('/start', {"url": userInput})
-						.success(function(results){
-							$log.log(results)
-							getWordCount(results)
+					wordcountService.getJobID(userInput).then(
+						function(jobID){
+							$log.log(jobID)
 							$scope.loading = true
 							$scope.submitButtonText = 'Loading...'
-						}).error(function(error){
+							getWordCount(jobID)
+							
+						}, 
+						function(error){
 							$log.log(error)
-						});
+						}
+					)
+						
+					//Get results from job ID
+					function getWordCount(jobID){
+						wordcountService.getWordCount(jobID).then(
+							function(data){
+								$log.log(data)
+								$scope.wordcounts = data
+							},
+							function(error){
+								$log.log(error)
+								$scope.urlerror = true
+							}
+						).finally(function(){
+							$scope.loading = false
+							$scope.submitButtonText = 'Submit'
+						})
+					}
 				}
 			}
 		])
