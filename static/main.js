@@ -64,18 +64,15 @@
 							$log.log(jobID)
 							$scope.loading = true
 							$scope.submitButtonText = 'Loading...'
-							getWordCount(jobID)
+							return jobID
 							
 						}, 
 						function(error){
 							$log.log(error)
 						}
 					)
-				}
-				
-				//Get results from job ID
-				function getWordCount(jobID){
-					wordcountService.getWordCount(jobID).then(
+					.then(wordcountService.getWordCount) //Get results from job ID
+					.then( //Handle data returned from polling job ID
 						function(data){
 							$log.log(data)
 							$scope.wordcounts = data
