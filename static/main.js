@@ -32,17 +32,12 @@
 					return wordcountData.promise
 				}
 				
-				//Returns job ID from URL
+				//Returns job ID from URL (returns a promise that resolves to the job ID)
 				this.getJobID = function(url){
-					var jobID = $q.defer()
-					$http.post('/start', {"url": url})
-						.success(function(results){
-							jobID.resolve(results)
-						}).error(function(error){
-							jobID.reject(error)
-						})
-							
-					return jobID.promise
+					return $http.post('/start', {"url": url})
+								.then(function(response){
+									return response.data
+								})
 				}
 			}
 		])
@@ -65,26 +60,19 @@
 							$scope.loading = true
 							$scope.submitButtonText = 'Loading...'
 							return jobID
-							
-						}, 
-						function(error){
-							$log.log(error)
 						}
 					)
 					.then(wordcountService.getWordCount) //Get results from job ID
-					.then( //Handle data returned from polling job ID
-						function(data){
+					.then(function(data){ //Handle data returned from polling job ID
 							$log.log(data)
 							$scope.wordcounts = data
-						},
-						function(error){
+						}, null, $log.log
+					)
+					.catch(function(error){
 							$log.log(error)
 							$scope.urlerror = true
-						},
-						function(notify){
-							$log.log(notify)
-						}
-					).finally(function(){
+					})
+					.finally(function(){
 						$scope.loading = false
 						$scope.submitButtonText = 'Submit'
 					})
