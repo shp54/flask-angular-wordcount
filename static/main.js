@@ -32,12 +32,9 @@
 					return wordcountData.promise
 				}
 				
-				//Returns job ID from URL (returns a promise that resolves to the job ID)
+				//Returns job ID from URL (returns a promise that resolves to the HTTP request response containing the job ID)
 				this.getJobID = function(url){
 					return $http.post('/start', {"url": url})
-								.then(function(response){
-									return response.data
-								})
 				}
 			}
 		])
@@ -55,11 +52,11 @@
 					var userInput = $scope.url
 					//Post input to server
 					wordcountService.getJobID(userInput).then(
-						function(jobID){
-							$log.log(jobID)
+						function(response){
+							$log.log(response)
 							$scope.loading = true
 							$scope.submitButtonText = 'Loading...'
-							return jobID
+							return response.data
 						}
 					)
 					.then(wordcountService.getWordCount) //Get results from job ID
